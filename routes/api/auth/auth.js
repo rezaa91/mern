@@ -9,6 +9,10 @@ router.post('/', (req, res) => {
     const { email, password } = req.body;
     User.findOne({email, password})
         .then(user => {
+            if (!user || !user.id) {
+                res.status(404).send({error: 'Authentication failed'});
+            }
+
             jwt.sign(
                 {id: user.id},
                 jwtSecret,
