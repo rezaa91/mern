@@ -7,6 +7,7 @@ export default class App extends React.Component {
     super(props);
 
     this.state = {
+      blogs: [],
       posts: null,
       email: '',
       password: '',
@@ -18,6 +19,7 @@ export default class App extends React.Component {
     this.handleOnChange = this.handleOnChange.bind(this);
     this.login = this.login.bind(this);
     this.getUser = this.getUser.bind(this);
+    this.deleteBlog = this.deleteBlog.bind(this);
   }
 
   componentDidMount() {
@@ -53,16 +55,40 @@ export default class App extends React.Component {
     this.setState(obj);
   }
 
+  async deleteBlog(id) {
+    const { token, posts } = this.state;
+
+    try {
+      const response = await axios.delete(`/api/posts/${id}`, {
+        headers: {
+          'x-auth-token': token
+        }
+      });
+
+      if (!response.data || !response.data.success) {
+        throw new Error('Post cannot be deleted');
+      }
+
+      this.setState({
+        posts: posts.filter(post => post.key !== id)
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   async renderPosts() {
     try {
       const blogs = await axios.get('/api/posts');
 
       this.setState({
-        posts: blogs.data.map((blog, index) => (
-          <div className="blog-container" key={index}>
+        blogs,
+        posts: blogs.data.map((blog) => (
+          <div className="blog-container" key={blog._id}>
             <h2>{ blog.title }</h2>
             <p>{ blog.body }</p>
             <small>{ blog.author }</small>
+            <button onClick={() => this.deleteBlog(blog._id)}>Delete</button>
           </div>
         ))
       })

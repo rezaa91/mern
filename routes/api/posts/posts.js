@@ -1,8 +1,10 @@
 const express = require('express');
 const Post = require('../../../models/posts');
+const auth = require('../../../middleware/auth');
 
 const router = express.Router();
 
+// get all posts
 router.get('/', (req, res) => {
     Post.find({}, (err, posts) => {
         if (err) return console.log(err);
@@ -11,6 +13,7 @@ router.get('/', (req, res) => {
     })
 })
 
+// post new blog
 router.post('/', (req, res) => {
     const { title, body, author } = req.body;
 
@@ -23,5 +26,12 @@ router.post('/', (req, res) => {
         res.json({success: 'Post successfully added'});
     })
 })
+
+// delete blog
+router.delete('/:id', auth, (req, res) => {
+    Post.findById(req.params.id)
+        .then(post => post.remove().then(() => res.json({ success: true })))
+        .catch(err => res.status(404).json({ success: false }));
+});
 
 module.exports = router;
